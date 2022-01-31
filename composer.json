@@ -1,0 +1,23 @@
+{
+    "name": "nazmulpcc/imap",
+    "description": "IMAP protocol with PHP",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Nazmulpcc\\Imap\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Nazmul Alam",
+            "email": "nazmulpcc@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^8.1",
+        "react/socket": "^1.11",
+        "react/async": "dev-main"
+    }
+}
