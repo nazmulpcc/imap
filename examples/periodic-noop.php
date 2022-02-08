@@ -7,7 +7,6 @@ use function React\Async\await;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-
 $imap = new Imap('imap.gmail.com');
 
 await($imap->connect());

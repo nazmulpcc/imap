@@ -106,4 +106,9 @@ class Connection {
     {
         return $this->commandPrefix = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
     }
+
+    public function getCommandPrefix(): string
+    {
+        return $this->commandPrefix ?? '';
+    }
 }
