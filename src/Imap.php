@@ -7,6 +7,8 @@ use React\Promise\PromiseInterface;
 use React\Stream\WritableResourceStream;
 
 class Imap {
+    use Debuggable;
+
     protected Connection $connection;
 
     protected Parser $parser;
@@ -29,6 +31,7 @@ class Imap {
 
     public function debugWith(WritableResourceStream $stream)
     {
+        $this->setDebugger($stream);
         $this->connection->setDebugger($stream);
     }
 
@@ -56,43 +59,46 @@ class Imap {
 
     public function noop(): PromiseInterface
     {
-        return $this->connection->write('NOOP');
+        return $this->write('NOOP');
     }
 
     public function login(string $user, string $pass): PromiseInterface
     {
-        return $this->connection
+        return $this
             ->write("LOGIN \"{$user}\" \"{$pass}\"")
-            ->then(function ($response){
-                if(!$this->parser->isOkay($response)){
+            ->then(function (Response $response){
+                if(!$response->isOkay()){
                     return $this->loggedIn = false;
                 }
-                $this->capabilities = $this->parser->parseCapabilitiesFromLoginResponse($response);
+                $this->capabilities = $this->parser->parseCapabilitiesFromLoginResponse($response->body());
                 return $this->loggedIn = count($this->capabilities) > 0;
             });
     }
 
     public function create(string $box): PromiseInterface
     {
-        return $this->connection->write('CREATE ' . $box)
-            ->then([$this->parser, 'isOkay']);
+        return $this->write('CREATE ' . $box)
+            ->then([$this, 'checkResponseIsOkay']);
     }
 
     public function delete(string $box): PromiseInterface
     {
-        return $this->connection->write('DELETE ' . $box)
-            ->then([$this->parser, 'isOkay']);
+        return $this->write('DELETE ' . $box)
+            ->then([$this, 'checkResponseIsOkay']);
     }
 
     public function namespace(): PromiseInterface
     {
         // TODO: parse namespace response
-        return $this->connection->write('NAMESPACE');
+        return $this->write('NAMESPACE');
     }
 
     public function write(string $command)
     {
-        return $this->connection->write($command);
+        return $this->connection->write($command)
+            ->then(function ($data){
+                return new Response($data[0], $data[1], $this->debugger);
+            });
     }
 
     protected function mustBeLoggedIn()
@@ -101,5 +107,10 @@ class Imap {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
             throw new NotLoggedInException('You must be logged in to call ' . ($trace[1]['function'] ?? 'this function'));
         }
+    }
+
+    public function checkResponseIsOkay(Response $response): bool
+    {
+        return $response->isOkay();
     }
 }

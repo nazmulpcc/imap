@@ -5,15 +5,16 @@ namespace Nazmulpcc\Imap;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 use React\Socket\Connection as Socket;
+use React\Socket\ConnectionInterface;
 use React\Socket\Connector;
 use React\Stream\WritableResourceStream;
 
 class Connection {
-
+    use Debuggable;
     /**
-     * @var \React\Socket\ConnectionInterface
+     * @var ConnectionInterface
      */
-    protected $connection;
+    protected ConnectionInterface $connection;
 
     protected int $sequence = 0;
 
@@ -30,8 +31,6 @@ class Connection {
      * @var string[]
      */
     protected array $buffers;
-
-    protected ?WritableResourceStream $debugger = null;
 
     public function __construct(protected string $host, protected int $port = 993)
     {
@@ -60,7 +59,7 @@ class Connection {
         $deferred = $this->promises[] = new Deferred();
         $sequence = $this->sequence++;
         $this->buffers[$sequence] = '';
-        $command = "{$this->commandPrefix}{$sequence} {$command} \r\n";
+        $command = "{$this->commandPrefix}{$sequence} {$command}\r\n";
 
         $this->debug("<- $command");
         
@@ -82,24 +81,11 @@ class Connection {
             $this->buffers[$this->outputSequence] .= $target . "\n";
 
             if(substr($target, 0, $prefixLength) === $this->commandPrefix){
-                $this->debug("--------------------- {$this->outputSequence} ---------------------");
-                $this->promises[$this->outputSequence]->resolve($this->buffers[$this->outputSequence]);
+                $this->debugSection($this->outputSequence);
+                $this->promises[$this->outputSequence]->resolve([$this->buffers[$this->outputSequence], $this->getCommandPrefix() . $this->outputSequence]);
                 ++$this->outputSequence;
             }
         }
-    }
-
-    public function debug($string)
-    {
-        return $this->debugger &&
-            $this->debugger->write($string . "\n");
-    }
-
-    public function setDebugger(WritableResourceStream $stream)
-    {
-        $this->debugger = $stream;
-
-        return $this;
     }
 
     public function generateCommandPrefix()

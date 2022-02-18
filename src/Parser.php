@@ -11,12 +11,6 @@ class Parser
         //
     }
 
-    public function isOkay(string $output): bool
-    {
-        $this->cleanOutput($output);
-        return str_starts_with($output, 'OK');
-    }
-
     /**
      * @throws InvalidResponseException
      */
@@ -31,7 +25,7 @@ class Parser
         return explode(' ', substr($output, $start + 1, $end - $start - 1));
     }
 
-    protected function cleanOutput(string &$output)
+    public function cleanOutput(string &$output)
     {
         $output = trim($output);
         $output = preg_replace("~{$this->commandPrefix}\d+ ~", '', $output);
