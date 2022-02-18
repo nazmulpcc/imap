@@ -64,8 +64,11 @@ class Imap {
         return $this->connection
             ->write("LOGIN \"{$user}\" \"{$pass}\"")
             ->then(function ($response){
+                if(!$this->parser->isOkay($response)){
+                    return $this->loggedIn = false;
+                }
                 $this->capabilities = $this->parser->parseCapabilitiesFromLoginResponse($response);
-                return $this->loggedIn = count($this->capabilities) > 0; // TODO: need to improve login check logic
+                return $this->loggedIn = count($this->capabilities) > 0;
             });
     }
 
