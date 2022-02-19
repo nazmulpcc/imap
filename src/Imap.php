@@ -87,6 +87,11 @@ class Imap {
             ->then([$this, 'checkResponseIsOkay']);
     }
 
+    public function list($reference = '""', $mailbox = '"*"')
+    {
+        return $this->write("LIST {$reference} {$mailbox}");
+    }
+
     public function namespace(): PromiseInterface
     {
         // TODO: parse namespace response
