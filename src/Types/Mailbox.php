@@ -4,6 +4,11 @@ namespace Nazmulpcc\Imap\Types;
 
 use Nazmulpcc\Imap\Imap;
 
+/**
+ * @property string $name
+ * @property string[] $flags
+ * @property string $sflag
+ */
 class Mailbox extends Type
 {
     protected ?Mailbox $parent = null;
@@ -20,6 +25,18 @@ class Mailbox extends Type
 
     protected string $sflag;
 
+    protected string $name;
+
+    protected string $path;
+
+    public function path($path): static
+    {
+        $path = explode('/', $this->path = $path);
+        $this->name = trim(end($path));
+
+        return $this;
+    }
+
     public function flags(array $list = []): array|static
     {
         if(count(func_get_args()) === 0){
@@ -34,8 +51,8 @@ class Mailbox extends Type
         $flags = array_diff($list, $sflags);
         $this->flags = $flags; // TODO: maybe validate the flags?
 
-        if($sflag = array_intersect($list, $sflags)){
-            $this->sflag = $sflag[0];
+        if(count($sflag = array_intersect($list, $sflags)) > 0){
+            $this->sflag = end($sflag);
         }
 
         return $this;
@@ -54,5 +71,10 @@ class Mailbox extends Type
     public function noselect(): bool
     {
         return strtolower($this->sflag) === 'noselect';
+    }
+
+    public function __get(string $name)
+    {
+        return $this->$name ?? null;
     }
 }
