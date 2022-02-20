@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c636cb6d0f3b786674b9d19ebecfb83",
+    "content-hash": "634c4ee9fe379861c23bf80d993e07ad",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -55,16 +55,16 @@
         },
         {
             "name": "react/async",
-            "version": "dev-main",
+            "version": "4.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/async.git",
-                "reference": "bc117045b48bcc3ad14da85224ee3bc11f8d5ee8"
+                "reference": "1986075aa6e055a75824f8a7228a2ace144950f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/async/zipball/bc117045b48bcc3ad14da85224ee3bc11f8d5ee8",
-                "reference": "bc117045b48bcc3ad14da85224ee3bc11f8d5ee8",
+                "url": "https://api.github.com/repos/reactphp/async/zipball/1986075aa6e055a75824f8a7228a2ace144950f4",
+                "reference": "1986075aa6e055a75824f8a7228a2ace144950f4",
                 "shasum": ""
             },
             "require": {
@@ -78,12 +78,12 @@
             "default-branch": true,
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Async\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Async\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -118,7 +118,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/async/issues",
-                "source": "https://github.com/reactphp/async/tree/main"
+                "source": "https://github.com/reactphp/async/tree/4.x"
             },
             "funding": [
                 {
@@ -130,7 +130,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-28T11:30:47+00:00"
+            "time": "2022-02-18T08:12:23+00:00"
         },
         {
             "name": "react/cache",
@@ -372,12 +372,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise.git",
-                "reference": "29daf46dbbe351dff533cec5bc556a0ded6590be"
+                "reference": "234f8fd1023c9158e2314fa9d7d0e6a83db42910"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise/zipball/29daf46dbbe351dff533cec5bc556a0ded6590be",
-                "reference": "29daf46dbbe351dff533cec5bc556a0ded6590be",
+                "url": "https://api.github.com/repos/reactphp/promise/zipball/234f8fd1023c9158e2314fa9d7d0e6a83db42910",
+                "reference": "234f8fd1023c9158e2314fa9d7d0e6a83db42910",
                 "shasum": ""
             },
             "require": {
@@ -386,14 +386,15 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.36"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Promise\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Promise\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -402,7 +403,23 @@
             "authors": [
                 {
                     "name": "Jan Sorgalla",
-                    "email": "jsorgalla@gmail.com"
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
                 }
             ],
             "description": "A lightweight implementation of CommonJS Promises/A for PHP",
@@ -412,7 +429,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise/issues",
-                "source": "https://github.com/reactphp/promise/tree/2.x"
+                "source": "https://github.com/reactphp/promise/tree/v2.9.0"
             },
             "funding": [
                 {
@@ -424,7 +441,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-11-17T15:31:12+00:00"
+            "time": "2022-02-11T10:27:51+00:00"
         },
         {
             "name": "react/promise-timer",
@@ -450,12 +467,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Promise\\Timer\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Promise\\Timer\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -679,9 +696,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "react/async": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

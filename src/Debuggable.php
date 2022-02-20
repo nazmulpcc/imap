@@ -29,7 +29,7 @@ trait Debuggable
             $this->debug(str_repeat($separator, $cols));
         }
         $cols -= strlen($title) + 2;
-        $cols /= 2;
+        $cols = floor($cols/2);
         $this->debug(str_repeat('-', $cols) . " {$title} " . str_repeat('-', $cols));
     }
 

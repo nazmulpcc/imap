@@ -3,6 +3,7 @@
 namespace Nazmulpcc\Imap;
 
 use Nazmulpcc\Imap\Exceptions\NotLoggedInException;
+use Nazmulpcc\Imap\Types\Mailbox;
 use React\Promise\PromiseInterface;
 use React\Stream\WritableResourceStream;
 
@@ -22,7 +23,7 @@ class Imap {
     public function __construct(protected string $host, protected int $port = 993, bool $debug = true)
     {
         $this->connection = new Connection($this->host, $this->port);
-        $this->parser = new Parser($this->connection->getCommandPrefix());
+        $this->parser = new Parser($this, $this->connection->getCommandPrefix());
 
         if($debug){
             $this->debugWith(new WritableResourceStream(STDOUT));
@@ -87,9 +88,31 @@ class Imap {
             ->then([$this, 'checkResponseIsOkay']);
     }
 
-    public function list($reference = '""', $mailbox = '"*"')
+    public function list($reference = '""', $mailbox = '"*"'): PromiseInterface
     {
-        return $this->write("LIST {$reference} {$mailbox}");
+        return $this->write("LIST {$reference} {$mailbox}")
+            ->then(function (Response $response){
+                return $this->parser->parseMailboxList($response);
+            });
+    }
+
+    public function select(Mailbox|string $mailbox, $select = true): PromiseInterface
+    {
+        if($mailbox instanceof Mailbox){
+            $mailbox = $mailbox->path;
+        }
+
+        $command = $select ? 'SELECT' : 'EXAMINE';
+
+        return $this->write("{$command} {$mailbox}")
+            ->then(function (Response $response){
+                return $this->parser->parseMailboxStatus($response);
+            });
+    }
+
+    public function examine(Mailbox|string $mailbox): PromiseInterface
+    {
+        return $this->select($mailbox, false);
     }
 
     public function namespace(): PromiseInterface
@@ -109,7 +132,7 @@ class Imap {
     protected function mustBeLoggedIn()
     {
         if(!$this->loggedIn){
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
             throw new NotLoggedInException('You must be logged in to call ' . ($trace[1]['function'] ?? 'this function'));
         }
     }

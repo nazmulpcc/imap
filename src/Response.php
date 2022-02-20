@@ -2,6 +2,8 @@
 
 namespace Nazmulpcc\Imap;
 
+use Nazmulpcc\Imap\Types\Astring;
+
 class Response implements \ArrayAccess, \Stringable
 {
     use Debuggable;
@@ -15,6 +17,10 @@ class Response implements \ArrayAccess, \Stringable
      * @var string
      */
     protected string $status;
+
+    protected ?string $specialStatus = null;
+
+    protected ?string $statusMessage = null;
 
     public function __construct(string $body, protected string $prefix, $debugStream = null)
     {
@@ -37,6 +43,16 @@ class Response implements \ArrayAccess, \Stringable
     public function status(): string
     {
         return $this->status;
+    }
+
+    public function specialStatus(): ?string
+    {
+        return $this->specialStatus;
+    }
+
+    public function statusMessage(): ?string
+    {
+        return $this->statusMessage;
     }
 
     public function isOkay(): bool
@@ -92,6 +108,7 @@ class Response implements \ArrayAccess, \Stringable
                 $this->processLastLine($line);
                 break;
             }
+            $this->debug("=> " . $line);
             // TODO: need additional processing
             $this->lines[] = $line;
         }
@@ -99,10 +116,16 @@ class Response implements \ArrayAccess, \Stringable
 
     protected function processLastLine(string $line)
     {
-        // Remove the command prefix from the last line of output
-        $line = str_replace($this->prefix . ' ', '', trim($line));
+        $line = Astring::make($line);
 
-        // Next word should be OK, NO or BAD
-        $this->status = substr($line, 0, strpos($line, ' '));
+        $this->status = $line->expect($this->prefix)
+            ->skipSpaces()
+            ->readUntil(' ');
+
+        $line->ifNext('[', function (Astring $line){
+            $this->specialStatus = $line->readUntil(']');
+        });
+
+        $this->statusMessage = $line->readUntilEnd();
     }
 }
