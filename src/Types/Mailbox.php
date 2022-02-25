@@ -8,6 +8,7 @@ use Nazmulpcc\Imap\Imap;
  * @property string $name
  * @property string[] $flags
  * @property string $sflag
+ * @property string $path
  */
 class Mailbox extends Type
 {
@@ -31,7 +32,7 @@ class Mailbox extends Type
 
     public function path($path): static
     {
-        $path = explode('/', $this->path = $path);
+        $path = explode('/', $this->path = trim($path));
         $this->name = trim(end($path));
 
         return $this;

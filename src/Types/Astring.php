@@ -2,6 +2,8 @@
 
 namespace Nazmulpcc\Imap\Types;
 
+use React\EventLoop\Loop;
+
 class Astring
 {
     use Makable;
@@ -15,9 +17,20 @@ class Astring
         $this->length = strlen($this->body);
     }
 
-    public function next(): string
+    public function body(): string
     {
-        return $this->body[$this->position++];
+        return $this->body;
+    }
+
+    public function next($length = 1): string
+    {
+        $result = substr($this->body, $this->position, $length);
+        $this->position += $length;
+        if($this->position > $this->length){
+            $this->position = $this->length;
+        }
+
+        return $result;
     }
 
     /**
@@ -106,22 +119,117 @@ class Astring
      * Read until a non-space character is found
      * @return $this
      */
-    public function skipSpaces()
+    public function skipSpaces(): static
     {
-        while ($this->body[$this->position] === ' '){
-            ++$this->position;
+        $spaces = [' ', "\r", "\n"];
+        while (true) {
+            $char = $this->body[$this->position];
+            if(in_array($char, $spaces)){
+                ++$this->position;
+            }else{
+                break;
+            }
         }
+
         return $this;
     }
 
     public function parseNextSpecials()
     {
-        $current = $this->next();
-        if($current === '"'){
-            return $this->readUntil('"');
+        $this->position = 0; // start from the beginning
+        $items = [];
+        $index = 0;
+
+        do {
+            $buffer = '';
+            $items[$index] = [];
+            $this->expect('*');
+            $this->skipSpaces();
+
+            while (true) {
+                $char = $this->next();
+                if($this->ended()){
+                    break;
+                }
+                if ($char === '(') {
+                    $key = array_pop($items[$index]);
+                    $items[$index][$key] = $this->parseList();
+                } elseif ($char === '{') {
+                    $size = (int) $this->readUntil('}');
+                    $items[$index][] = trim($this->next($size));
+                    $this->skipSpaces();
+                }elseif ($char === '"'){
+                    $items[$index][] = $this->parseLiteral();
+                }elseif ($char === '\\'){
+                    $buffer .= $char . $this->next();
+                }elseif ($char === ' ') {
+                    $items[$index][] = $buffer;
+                    $buffer = '';
+                }elseif ($char === '*' && $this->body[$this->position-1] !== '\\'){
+                    $items[$index][] = $buffer;
+                    --$this->position;
+                    ++$index;
+                    break;
+                }else{
+                    $buffer .= $char;
+                }
+            }
         }
-        if($current === '('){
-            //
+        while (!$this->ended());
+
+        return $items;
+    }
+
+    protected function parseLiteral(): string
+    {
+        $buffer = '';
+        while (!$this->ended()){
+            $char = $this->next();
+            if($char === '\\'){
+                $char = $this->next();
+            }elseif ($char === '"'){
+                return $buffer;
+            }
+            $buffer .= $char;
         }
+        return $buffer;
+    }
+
+    protected function parseList(): array
+    {
+        $items = [];
+        $buffer = '';
+
+        while (!$this->ended()){
+            $char = $this->next();
+            if($char === '\\') {
+                $buffer .= $this->next(); // TODO: should we keep the "\" ?
+            }elseif ($char === '(') {
+                $key = array_pop($items);
+                $items[$key] = $this->parseList();
+            }elseif ($char === '{'){
+                $size = (int) $this->readUntil('}');
+                $key = array_pop($items);
+                $items[$key] = trim($this->next($size));
+                $this->skipSpaces();
+            }elseif ($char === '"'){
+                $buffer = $this->parseLiteral();
+            }elseif ($char === ' '){
+                $items[] = $buffer;
+                $buffer = '';
+            }elseif ($char === ')'){
+                $items[] = $buffer;
+                $this->skipSpaces();
+                return $items;
+            }else{
+                $buffer .= $char;
+            }
+        }
+        return $items;
+    }
+
+    protected function ended()
+    {
+        return $this->position >= $this->length;
     }
 }

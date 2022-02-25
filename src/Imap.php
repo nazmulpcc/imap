@@ -119,7 +119,7 @@ class Imap {
     {
         return $this->write("FETCH {$messageId} {$pattern}")
             ->then(function (Response $response){
-                return $this->parser->parseMailBody($response);
+                return $this->parser->parseFetchResponse($response);
             });
     }
 
