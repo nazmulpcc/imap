@@ -115,6 +115,14 @@ class Imap {
         return $this->select($mailbox, false);
     }
 
+    public function fetch(string $messageId, $pattern = 'RFC822')
+    {
+        return $this->write("FETCH {$messageId} {$pattern}")
+            ->then(function (Response $response){
+                return $this->parser->parseMailBody($response);
+            });
+    }
+
     public function namespace(): PromiseInterface
     {
         // TODO: parse namespace response

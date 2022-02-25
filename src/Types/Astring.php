@@ -15,6 +15,11 @@ class Astring
         $this->length = strlen($this->body);
     }
 
+    public function next(): string
+    {
+        return $this->body[$this->position++];
+    }
+
     /**
      * Expect the provided string to be next, throws an exception otherwise
      * @param string $string
@@ -42,6 +47,11 @@ class Astring
             ++$this->position;
         }
         return $buffer;
+    }
+
+    public function readNextWord()
+    {
+        return $this->readUntil(' ');
     }
 
     public function readUntilEnd()
@@ -102,5 +112,16 @@ class Astring
             ++$this->position;
         }
         return $this;
+    }
+
+    public function parseNextSpecials()
+    {
+        $current = $this->next();
+        if($current === '"'){
+            return $this->readUntil('"');
+        }
+        if($current === '('){
+            //
+        }
     }
 }

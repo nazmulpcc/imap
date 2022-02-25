@@ -96,4 +96,16 @@ class Parser
 
         return $data;
     }
+
+    public function parseMailBody(Response $response)
+    {
+//        $mail = [];
+        $body = new Astring($response->body());
+        $body->readUntil('FETCH');
+        $body->skipSpaces()
+            ->expect('(')
+            ->readNextWord();
+
+        return $body;
+    }
 }

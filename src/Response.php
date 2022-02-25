@@ -98,7 +98,6 @@ class Response implements \ArrayAccess, \Stringable
     protected function processResponseBody()
     {
         $response = $this->body;
-        $this->debug('=> Processing response of length ' . strlen($response));
         while(strlen($response) > 0) {
             $end = strpos($response, "\n");
             $line = substr($response, 0, $end ?: null);
@@ -108,7 +107,6 @@ class Response implements \ArrayAccess, \Stringable
                 $this->processLastLine($line);
                 break;
             }
-            $this->debug("=> " . $line);
             // TODO: need additional processing
             $this->lines[] = $line;
         }
