@@ -78,12 +78,15 @@ class Connection {
             if(!isset($this->buffers[$this->outputSequence])){
                 $this->buffers[$this->outputSequence] = '';
             }
-            $this->buffers[$this->outputSequence] .= $target . "\n";
 
             if(substr($target, 0, $prefixLength) === $this->commandPrefix){
                 $this->debugSection($this->outputSequence);
-                $this->promises[$this->outputSequence]->resolve([$this->buffers[$this->outputSequence], $this->getCommandPrefix() . $this->outputSequence]);
+                $this->promises[$this->outputSequence]
+                    ->resolve([$this->buffers[$this->outputSequence], $target, $this->getCommandPrefix() . $this->outputSequence]);
+                unset($this->buffers[$this->outputSequence]);
                 ++$this->outputSequence;
+            }else{
+                $this->buffers[$this->outputSequence] .= $target . "\n";
             }
         }
     }

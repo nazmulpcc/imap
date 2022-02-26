@@ -53,6 +53,11 @@ class Imap {
         return $this->status;
     }
 
+    public function capabilities(): array
+    {
+        return $this->capabilities;
+    }
+
     public function isLoggedIn(): bool
     {
         return $this->loggedIn;
@@ -71,8 +76,8 @@ class Imap {
                 if(!$response->isOkay()){
                     return $this->loggedIn = false;
                 }
-                $this->capabilities = $this->parser->parseCapabilitiesFromLoginResponse($response->body());
-                return $this->loggedIn = count($this->capabilities) > 0;
+                $this->capabilities = $response->statusLine()->tokens()[2] ?? [];
+                return $this->loggedIn = count($this->capabilities) > 2;
             });
     }
 
@@ -133,7 +138,7 @@ class Imap {
     {
         return $this->connection->write($command)
             ->then(function ($data){
-                return new Response($data[0], $data[1], $this->debugger);
+                return new Response($data[0], $data[1], $data[2]);
             });
     }
 

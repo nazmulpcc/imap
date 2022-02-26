@@ -2,15 +2,13 @@
 
 namespace Nazmulpcc\Imap;
 
-use Nazmulpcc\Imap\Types\Astring;
+use Nazmulpcc\Imap\Types\ImapString;
 
-class Response implements \ArrayAccess, \Stringable
+class Response implements \Stringable
 {
     use Debuggable;
 
-    protected string $body;
-
-    protected array $lines = [];
+    protected array $tokens = [];
 
     /**
      * Imap response status, OK, NO or BAD
@@ -22,22 +20,25 @@ class Response implements \ArrayAccess, \Stringable
 
     protected ?string $statusMessage = null;
 
-    public function __construct(string $body, protected string $prefix, $debugStream = null)
-    {
-        $this->body = trim($body);
+    protected ImapString $body;
 
-        $this->setDebugger($debugStream)
-            ->processResponseBody();
+    protected ImapString $statusLine;
+
+    public function __construct(string $body, string $statusLine, protected string $prefix)
+    {
+        $this->body = new ImapString($body);
+        $this->statusLine = new ImapString($statusLine);
+        $this->status = $this->statusLine->tokens()[1] ?? 'BAD';
     }
 
-    public function body(): string
+    public function body(): ImapString
     {
         return $this->body;
     }
 
-    public function lines(): array
+    public function statusLine(): ImapString
     {
-        return $this->lines;
+        return $this->statusLine;
     }
 
     public function status(): string
@@ -70,60 +71,8 @@ class Response implements \ArrayAccess, \Stringable
         return $this->status === 'BAD';
     }
 
-    public function offsetExists(mixed $offset): bool
-    {
-        return isset($this->lines[$offset]);
-    }
-
-    public function offsetGet(mixed $offset): mixed
-    {
-        return $this->lines[$offset];
-    }
-
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->lines[$offset] = $value;
-    }
-
-    public function offsetUnset(mixed $offset): void
-    {
-        unset($this->lines[$offset]);
-    }
-
     public function __toString(): string
     {
-        return $this->body;
-    }
-
-    protected function processResponseBody()
-    {
-        $response = $this->body;
-        while(strlen($response) > 0) {
-            $end = strpos($response, "\n");
-            $line = substr($response, 0, $end ?: null);
-            $response = substr($response, $end+1);
-
-            if(str_starts_with($line, $this->prefix)){
-                $this->processLastLine($line);
-                break;
-            }
-            // TODO: need additional processing
-            $this->lines[] = $line;
-        }
-    }
-
-    protected function processLastLine(string $line)
-    {
-        $line = Astring::make($line);
-
-        $this->status = $line->expect($this->prefix)
-            ->skipSpaces()
-            ->readUntil(' ');
-
-        $line->ifNext('[', function (Astring $line){
-            $this->specialStatus = $line->readUntil(']');
-        });
-
-        $this->statusMessage = $line->readUntilEnd();
+        return $this->body->body();
     }
 }
