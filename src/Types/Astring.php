@@ -152,14 +152,12 @@ class Astring
                     break;
                 }
                 if ($char === '(') {
-                    $key = array_pop($items[$index]);
-                    $items[$index][$key] = $this->parseList();
+                    $items[$index][] = $this->parseList();
                 } elseif ($char === '{') {
-                    $size = (int) $this->readUntil('}');
-                    $items[$index][] = trim($this->next($size));
+                    $items[$index][] = $this->parseLiteralString();
                     $this->skipSpaces();
                 }elseif ($char === '"'){
-                    $items[$index][] = $this->parseLiteral();
+                    $items[$index][] = $this->parseQuotedString();
                 }elseif ($char === '\\'){
                     $buffer .= $char . $this->next();
                 }elseif ($char === ' ') {
@@ -180,7 +178,7 @@ class Astring
         return $items;
     }
 
-    protected function parseLiteral(): string
+    protected function parseQuotedString(): string
     {
         $buffer = '';
         while (!$this->ended()){
@@ -195,6 +193,13 @@ class Astring
         return $buffer;
     }
 
+    protected function parseLiteralString()
+    {
+        $size = (int) $this->readUntil('}');
+        $this->next(2); // skip CRLF after }
+        return $this->next($size);
+    }
+
     protected function parseList(): array
     {
         $items = [];
@@ -205,20 +210,19 @@ class Astring
             if($char === '\\') {
                 $buffer .= $this->next(); // TODO: should we keep the "\" ?
             }elseif ($char === '(') {
-                $key = array_pop($items);
-                $items[$key] = $this->parseList();
+                $items[] = $this->parseList();
             }elseif ($char === '{'){
-                $size = (int) $this->readUntil('}');
-                $key = array_pop($items);
-                $items[$key] = trim($this->next($size));
+                $items[] = $this->parseLiteralString();
                 $this->skipSpaces();
             }elseif ($char === '"'){
-                $buffer = $this->parseLiteral();
+                $buffer = $this->parseQuotedString();
             }elseif ($char === ' '){
                 $items[] = $buffer;
                 $buffer = '';
             }elseif ($char === ')'){
-                $items[] = $buffer;
+                if($buffer !== ''){
+                    $items[] = $buffer;
+                }
                 $this->skipSpaces();
                 return $items;
             }else{

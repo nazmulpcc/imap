@@ -99,6 +99,7 @@ class Parser
 
     public function parseFetchResponse(Response $response)
     {
+        file_put_contents('original.txt', $response);
         $body = new Astring($response->body());
         return $body->parseNextSpecials();
     }
