@@ -73,12 +73,14 @@ class Connection {
     {
         $prefixLength = strlen($this->commandPrefix);
 
-        foreach(explode("\n", $data) as $target){
+        foreach(explode("\n", $data) as $index => $target){
             $this->debug("-> $target");
             if(!isset($this->buffers[$this->outputSequence])){
                 $this->buffers[$this->outputSequence] = '';
             }
-
+            if($index > 0){
+                $this->buffers[$this->outputSequence] .= "\n";
+            }
             if(substr($target, 0, $prefixLength) === $this->commandPrefix){
                 $this->debugSection($this->outputSequence);
                 $this->promises[$this->outputSequence]
@@ -86,7 +88,7 @@ class Connection {
                 unset($this->buffers[$this->outputSequence]);
                 ++$this->outputSequence;
             }else{
-                $this->buffers[$this->outputSequence] .= $target . "\n";
+                $this->buffers[$this->outputSequence] .= $target;
             }
         }
     }
