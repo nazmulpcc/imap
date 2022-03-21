@@ -5,7 +5,7 @@ namespace Nazmulpcc\Imap;
 use Nazmulpcc\Imap\Exceptions\NotLoggedInException;
 use Nazmulpcc\Imap\Types\Mailbox;
 use React\Promise\PromiseInterface;
-use React\Stream\WritableResourceStream;
+use React\Socket\ConnectionInterface;
 
 class Imap {
     use Debuggable;
@@ -20,32 +20,15 @@ class Imap {
 
     protected string $status = 'idle';
 
-    public function __construct(protected string $host, protected int $port = 993, bool $debug = true)
+    public function __construct(protected string $host, protected int $port = 993)
     {
         $this->connection = new Connection($this->host, $this->port);
         $this->parser = new Parser($this, $this->connection->getCommandPrefix());
-
-        if($debug){
-            $this->debugWith(new WritableResourceStream(STDOUT));
-        }
     }
 
-    public function debugWith(WritableResourceStream $stream)
+    public function connection(): Connection
     {
-        $this->setDebugger($stream);
-        $this->connection->setDebugger($stream);
-    }
-
-    public function connect(): PromiseInterface
-    {
-        $this->status = 'connecting';
-        return $this->connection
-            ->connect()
-            ->then(function (\React\Socket\Connection $connection){
-                $connection->once('data', function ($data){
-                    return $this->status = 'connected';
-                });
-            });
+        return $this->connection;
     }
 
     public function status(): string
@@ -63,6 +46,18 @@ class Imap {
         return $this->loggedIn;
     }
 
+    public function connect(): PromiseInterface
+    {
+        $this->status = 'connecting';
+        return $this->connection
+            ->connect()
+            ->then(function (ConnectionInterface $connection){
+                $connection->once('data', function ($data){
+                    return $this->status = 'connected';
+                });
+            });
+    }
+
     public function noop(): PromiseInterface
     {
         return $this->write('NOOP');
@@ -76,8 +71,8 @@ class Imap {
                 if(!$response->isOkay()){
                     return $this->loggedIn = false;
                 }
-                $this->capabilities = $response->statusLine()->tokens()[2] ?? [];
-                return $this->loggedIn = count($this->capabilities) > 2;
+                $this->capabilities = [];
+                return $this->loggedIn = count($this->capabilities) > -1;
             });
     }
 

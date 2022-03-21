@@ -7,7 +7,6 @@ use React\Promise\PromiseInterface;
 use React\Socket\Connection as Socket;
 use React\Socket\ConnectionInterface;
 use React\Socket\Connector;
-use React\Stream\WritableResourceStream;
 
 class Connection {
     use Debuggable;
