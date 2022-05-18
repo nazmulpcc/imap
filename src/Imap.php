@@ -4,13 +4,12 @@ namespace Nazmulpcc\Imap;
 
 use Nazmulpcc\Imap\Exceptions\NotLoggedInException;
 use Nazmulpcc\Imap\Types\Mailbox;
+use React\Promise\Promise;
 use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 
 class Imap {
     use Debuggable;
-
-    protected Connection $connection;
 
     protected Parser $parser;
 
@@ -20,13 +19,15 @@ class Imap {
 
     protected string $status = 'idle';
 
-    public function __construct(protected string $host, protected int $port = 993)
+    public function __construct(protected ?ImapConnection $connection = null)
     {
-        $this->connection = new Connection($this->host, $this->port);
+        if(!$this->connection){
+            $this->connection = new ImapConnection();
+        }
         $this->parser = new Parser($this, $this->connection->getCommandPrefix());
     }
 
-    public function connection(): Connection
+    public function connection(): ImapConnection
     {
         return $this->connection;
     }
@@ -46,11 +47,11 @@ class Imap {
         return $this->loggedIn;
     }
 
-    public function connect(): PromiseInterface
+    public function connect(string $host, int $port = 993): PromiseInterface
     {
         $this->status = 'connecting';
         return $this->connection
-            ->connect()
+            ->connect($host, $port)
             ->then(function (ConnectionInterface $connection){
                 $connection->once('data', function ($data){
                     return $this->status = 'connected';
@@ -131,10 +132,12 @@ class Imap {
 
     public function write(string $command)
     {
-        return $this->connection->write($command)
-            ->then(function ($data){
-                return new Response($data[0], $data[1], $data[2]);
-            });
+        $this->connection->write($command);
+//            ->then(function ($data){
+//                return new Response($data[0], $data[1], $data[2]);
+//            });
+
+        return new Promise(fn() => null);
     }
 
     protected function mustBeLoggedIn()
